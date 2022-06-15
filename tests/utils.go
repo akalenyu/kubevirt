@@ -1342,6 +1342,7 @@ func DeleteRawManifest(object unstructured.Unstructured) error {
 	policy := metav1.DeletePropagationBackground
 	options := &metav1.DeleteOptions{PropagationPolicy: &policy}
 
+	fmt.Printf(fmt.Sprintf("Calling DELETE on testing manifest: %s\n", uri))
 	result := virtCli.CoreV1().RESTClient().Delete().RequestURI(uri).Body(options).Do(context.Background())
 	if result.Error() != nil && !errors.IsNotFound(result.Error()) {
 		fmt.Printf(fmt.Sprintf("ERROR: Can not delete %s err: %#v %s\n", object.GetName(), result.Error(), object))
@@ -1847,10 +1848,12 @@ func cleanNamespaces() {
 		})
 		util2.PanicOnError(err)
 		for _, pv := range pvs.Items {
-			err := virtCli.CoreV1().PersistentVolumes().Delete(context.Background(), pv.Name, metav1.DeleteOptions{})
-			if err != nil && !errors.IsNotFound(err) {
-				util2.PanicOnError(err)
-			}
+			// Have to make sure PV is gone
+			// because we'll just back off from creating it if already exists
+			Eventually(func() bool {
+				err := virtCli.CoreV1().PersistentVolumes().Delete(context.Background(), pv.Name, metav1.DeleteOptions{})
+				return errors.IsNotFound(err)
+			}, 20*time.Second, 1*time.Second).Should(BeTrue())
 		}
 
 		// Remove all VirtualMachineInstance Secrets
