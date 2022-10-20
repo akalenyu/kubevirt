@@ -414,6 +414,9 @@ var _ = SIGDescribe("Export", func() {
 	verifyArchiveGzContent := func(fileName, expectedMD5 string, downloadPod *k8sv1.Pod, volumeMode k8sv1.PersistentVolumeMode) {
 		command := []string{
 			"/usr/bin/tar",
+			"--no-same-owner",
+			"--no-overwrite-dir",
+			"--touch",
 			"-xzvf",
 			filepath.Join(dataPath, fileName),
 			"-C",

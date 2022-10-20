@@ -32,6 +32,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/utils/pointer"
 
 	v1 "kubevirt.io/api/core/v1"
 	"kubevirt.io/client-go/kubecli"
@@ -50,6 +51,7 @@ const (
 
 func RenderPodWithPVC(name string, cmd []string, args []string, pvc *k8sv1.PersistentVolumeClaim) *k8sv1.Pod {
 	volumeName := "disk0"
+	user := int64(107)
 	// Change to 'pod := RenderPod(name, cmd, args)' once we have a libpod package
 	pod := &k8sv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -67,6 +69,10 @@ func RenderPodWithPVC(name string, cmd []string, args []string, pvc *k8sv1.Persi
 					Image:   fmt.Sprintf("%s/vm-killer:%s", flags.KubeVirtUtilityRepoPrefix, flags.KubeVirtUtilityVersionTag),
 					Command: cmd,
 					Args:    args,
+					SecurityContext: &k8sv1.SecurityContext{
+						AllowPrivilegeEscalation: pointer.Bool(false),
+						Capabilities:             &k8sv1.Capabilities{Drop: []k8sv1.Capability{"ALL"}},
+					},
 				},
 			},
 			Volumes: []k8sv1.Volume{
@@ -78,6 +84,11 @@ func RenderPodWithPVC(name string, cmd []string, args []string, pvc *k8sv1.Persi
 						},
 					},
 				},
+			},
+			SecurityContext: &k8sv1.PodSecurityContext{
+				RunAsNonRoot:   pointer.Bool(true),
+				RunAsUser:      &user,
+				SeccompProfile: &k8sv1.SeccompProfile{Type: k8sv1.SeccompProfileTypeRuntimeDefault},
 			},
 		},
 	}

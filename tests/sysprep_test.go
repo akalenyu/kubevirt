@@ -359,7 +359,7 @@ var _ = Describe("[Serial][Sysprep][sig-compute]Syspreped VirtualMachineInstance
 })
 
 func winRMCliPod() *k8sv1.Pod {
-	user := int64(1001)
+	user := int64(107)
 	return &k8sv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{GenerateName: winrmCli},
 		Spec: k8sv1.PodSpec{

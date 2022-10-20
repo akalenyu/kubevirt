@@ -66,6 +66,7 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/client-go/transport/spdy"
 	netutils "k8s.io/utils/net"
+	"k8s.io/utils/pointer"
 
 	"kubevirt.io/kubevirt/tests/framework/checks"
 
@@ -1238,6 +1239,7 @@ func RenderPrivilegedPod(name string, cmd []string, args []string) *k8sv1.Pod {
 }
 
 func RenderPod(name string, cmd []string, args []string) *k8sv1.Pod {
+	user := int64(107)
 	pod := k8sv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: name,
@@ -1253,6 +1255,11 @@ func RenderPod(name string, cmd []string, args []string) *k8sv1.Pod {
 					name,
 					cmd,
 					args),
+			},
+			SecurityContext: &k8sv1.PodSecurityContext{
+				RunAsNonRoot:   pointer.Bool(true),
+				RunAsUser:      &user,
+				SeccompProfile: &k8sv1.SeccompProfile{Type: k8sv1.SeccompProfileTypeRuntimeDefault},
 			},
 		},
 	}
@@ -1305,6 +1312,10 @@ func ChangeImgFilePermissionsToNonQEMU(pvc *k8sv1.PersistentVolumeClaim) {
 
 	By("changing disk.img permissions to non qemu")
 	pod := libstorage.RenderPodWithPVC("change-permissions-disk-img-pod", []string{"/bin/bash", "-c"}, args, pvc)
+	// Need root for this change
+	pod.Spec.SecurityContext = &k8sv1.PodSecurityContext{
+		RunAsUser: new(int64),
+	}
 
 	RunPodAndExpectCompletion(pod)
 }
@@ -1343,6 +1354,10 @@ func renderContainerSpec(imgPath string, name string, cmd []string, args []strin
 		Image:   imgPath,
 		Command: cmd,
 		Args:    args,
+		SecurityContext: &k8sv1.SecurityContext{
+			AllowPrivilegeEscalation: pointer.Bool(false),
+			Capabilities:             &k8sv1.Capabilities{Drop: []k8sv1.Capability{"ALL"}},
+		},
 	}
 }
 

@@ -529,7 +529,7 @@ var _ = Describe("[sig-compute]Subresource Api", func() {
 
 func testClientJob(virtCli kubecli.KubevirtClient, withServiceAccount bool, resource string) {
 	const subresourceTestLabel = "subresource-access-test-pod"
-	user := int64(1001)
+	user := int64(107)
 	namespace := util.NamespaceTestDefault
 	expectedPhase := k8sv1.PodFailed
 	name := "subresource-access-tester"
