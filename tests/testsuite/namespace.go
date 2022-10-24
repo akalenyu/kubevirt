@@ -37,6 +37,7 @@ import (
 
 	v1 "kubevirt.io/api/core/v1"
 	"kubevirt.io/client-go/kubecli"
+	"kubevirt.io/client-go/log"
 
 	"kubevirt.io/kubevirt/pkg/controller"
 
@@ -290,10 +291,17 @@ func createNamespaces() {
 			ns.Labels["pod-security.kubernetes.io/enforce"] = "privileged"
 		}
 
-		_, err = virtCli.CoreV1().Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+		res, err := virtCli.CoreV1().Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
 		if err != nil {
 			util.PanicOnError(err)
 		}
+		log.DefaultLogger().Infof("[CREATED NS] DEBUGGING PRIVILEGED NS LABELS REMOVAL: %+v", res)
+		time.Sleep(10 * time.Second)
+		updatedRes, err := virtCli.CoreV1().Namespaces().Get(context.Background(), ns.Name, metav1.GetOptions{})
+		if err != nil {
+			util.PanicOnError(err)
+		}
+		log.DefaultLogger().Infof("[10 SEC DELAY] DEBUGGING PRIVILEGED NS LABELS REMOVAL: %+v", updatedRes)
 	}
 }
 
