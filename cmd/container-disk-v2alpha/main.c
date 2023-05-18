@@ -141,7 +141,9 @@ int main(int argc, char **argv) {
     struct stat st = {0};
 
     if (stat(copy_path_dir, &st) == -1) {
+        printf("copy_path_dir: %s\n", copy_path_dir);
         if (mkdir(copy_path_dir, 0777) != 0) {
+            printf("mkdir err: %s\n", strerror(errno));
             error_log("failed to create disk directory %s\n", copy_path_dir);
             exit(1);
         }

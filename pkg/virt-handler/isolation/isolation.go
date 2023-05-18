@@ -195,7 +195,9 @@ func MountInfoRoot(r IsolationResult) (mountinfo *mount.Info, err error) {
 // parentMountInfoFor takes the mountInfo record of a container (child) and
 // attempts to locate a mountpoint containing it on the parent.
 func parentMountInfoFor(parent IsolationResult, mountInfo *mount.Info) (*mount.Info, error) {
+	log.Log.V(1).Infof("parentMountInfoFor called for container mountInfo: %+v", mountInfo)
 	mounts, err := parent.Mounts(func(m *mount.Info) (bool, bool) {
+		log.Log.V(1).Infof("filtering mounts on parent(node), current mount: %+v", m)
 		return m.Major != mountInfo.Major || m.Minor != mountInfo.Minor ||
 			!strings.HasPrefix(mountInfo.Root, m.Root), false
 	})
