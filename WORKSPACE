@@ -3169,6 +3169,14 @@ rpm(
 )
 
 rpm(
+    name = "libvirt-client-0__9.10.0-1.el9.x86_64",
+    sha256 = "21fd33ad368125e2a9f32947bdf3541d721159d0c4fe7cf48a00765f1c91a41d",
+    urls = [
+        "https://people.redhat.com/abologna/shared-storage/libvirt-client-9.10.0-1.el9.x86_64.rpm",
+    ],
+)
+
+rpm(
     name = "libvirt-client-0__9.5.0-6.el9.aarch64",
     sha256 = "0237c86ab4ad229c5dd400122ef8d41b20c094d5ed344d048614a2aa564ef5e9",
     urls = [
@@ -3178,11 +3186,10 @@ rpm(
 )
 
 rpm(
-    name = "libvirt-client-0__9.5.0-6.el9.x86_64",
-    sha256 = "3dbb02da7f4a3343b9085f2ffa455779ae3d8e19b4e6423222eb60c65b48a51b",
+    name = "libvirt-daemon-common-0__9.10.0-1.el9.x86_64",
+    sha256 = "2715c2bda92ccd460878bd9fc23474e33ae2d462aa8679f22d1a2b58b455c397",
     urls = [
-        "http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/libvirt-client-9.5.0-6.el9.x86_64.rpm",
-        "https://storage.googleapis.com/builddeps/3dbb02da7f4a3343b9085f2ffa455779ae3d8e19b4e6423222eb60c65b48a51b",
+        "https://people.redhat.com/abologna/shared-storage/libvirt-daemon-common-9.10.0-1.el9.x86_64.rpm",
     ],
 )
 
@@ -3196,11 +3203,10 @@ rpm(
 )
 
 rpm(
-    name = "libvirt-daemon-common-0__9.5.0-6.el9.x86_64",
-    sha256 = "506af6eaa7968688ad77e9a37f1bd766cb89b28a79d3feca3ef6cce9f4bb3c77",
+    name = "libvirt-daemon-driver-qemu-0__9.10.0-1.el9.x86_64",
+    sha256 = "a64ec84db887f12487c22ea9fc40d627e68daede5a087f623cf2850d6d5dc4fd",
     urls = [
-        "http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/libvirt-daemon-common-9.5.0-6.el9.x86_64.rpm",
-        "https://storage.googleapis.com/builddeps/506af6eaa7968688ad77e9a37f1bd766cb89b28a79d3feca3ef6cce9f4bb3c77",
+        "https://people.redhat.com/abologna/shared-storage/libvirt-daemon-driver-qemu-9.10.0-1.el9.x86_64.rpm",
     ],
 )
 
@@ -3214,29 +3220,26 @@ rpm(
 )
 
 rpm(
-    name = "libvirt-daemon-driver-qemu-0__9.5.0-6.el9.x86_64",
-    sha256 = "de16e915037b7295ba20469e4301a6d719d1250e6dd46ba851afac7cb8aef746",
+    name = "libvirt-daemon-driver-secret-0__9.10.0-1.el9.x86_64",
+    sha256 = "91053ed8da9e00883ad267b6b13d83199c8a8c72d3ebf76f284814826a48ac89",
     urls = [
-        "http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/libvirt-daemon-driver-qemu-9.5.0-6.el9.x86_64.rpm",
-        "https://storage.googleapis.com/builddeps/de16e915037b7295ba20469e4301a6d719d1250e6dd46ba851afac7cb8aef746",
+        "https://people.redhat.com/abologna/shared-storage/libvirt-daemon-driver-secret-9.10.0-1.el9.x86_64.rpm",
     ],
 )
 
 rpm(
-    name = "libvirt-daemon-driver-secret-0__9.5.0-6.el9.x86_64",
-    sha256 = "813cd25b5015d7879de39443a5f0795243f53f444ccd281f3393b940c276548a",
+    name = "libvirt-daemon-driver-storage-core-0__9.10.0-1.el9.x86_64",
+    sha256 = "6be5b3a8e9855c5388c3035aedcc7bc82f7ed2c63ea46611c1d4a93b54a5d572",
     urls = [
-        "http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/libvirt-daemon-driver-secret-9.5.0-6.el9.x86_64.rpm",
-        "https://storage.googleapis.com/builddeps/813cd25b5015d7879de39443a5f0795243f53f444ccd281f3393b940c276548a",
+        "https://people.redhat.com/abologna/shared-storage/libvirt-daemon-driver-storage-core-9.10.0-1.el9.x86_64.rpm",
     ],
 )
 
 rpm(
-    name = "libvirt-daemon-driver-storage-core-0__9.5.0-6.el9.x86_64",
-    sha256 = "e4d877ded56a7a3624f278ed55482d5de68194076d49b3a65060ea87d686ae54",
+    name = "libvirt-daemon-log-0__9.10.0-1.el9.x86_64",
+    sha256 = "7ce3b29abc6c81bddd5ef7cdca555042c38ad5f6f59b21cfaeb40acfcf652d99",
     urls = [
-        "http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/libvirt-daemon-driver-storage-core-9.5.0-6.el9.x86_64.rpm",
-        "https://storage.googleapis.com/builddeps/e4d877ded56a7a3624f278ed55482d5de68194076d49b3a65060ea87d686ae54",
+        "https://people.redhat.com/abologna/shared-storage/libvirt-daemon-log-9.10.0-1.el9.x86_64.rpm",
     ],
 )
 
@@ -3250,11 +3253,10 @@ rpm(
 )
 
 rpm(
-    name = "libvirt-daemon-log-0__9.5.0-6.el9.x86_64",
-    sha256 = "8ce3b735c02503d3093209a359ecf07e6de1da449338df3a1c8bc6d2d0cfedcc",
+    name = "libvirt-devel-0__9.10.0-1.el9.x86_64",
+    sha256 = "2d0d79aa4b5555730a0f66ec5313d88c0d2078293395fe33327245599a3d180f",
     urls = [
-        "http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/libvirt-daemon-log-9.5.0-6.el9.x86_64.rpm",
-        "https://storage.googleapis.com/builddeps/8ce3b735c02503d3093209a359ecf07e6de1da449338df3a1c8bc6d2d0cfedcc",
+        "https://people.redhat.com/abologna/shared-storage/libvirt-devel-9.10.0-1.el9.x86_64.rpm",
     ],
 )
 
@@ -3268,11 +3270,10 @@ rpm(
 )
 
 rpm(
-    name = "libvirt-devel-0__9.5.0-6.el9.x86_64",
-    sha256 = "caca5fbbfabe75cf56e24343bf93596f78a91fa341eacb668b15b505245922e9",
+    name = "libvirt-libs-0__9.10.0-1.el9.x86_64",
+    sha256 = "79988cb04f020d9bc42c2c60cd872737b4d119790449def3bbae04a49a919842",
     urls = [
-        "http://mirror.stream.centos.org/9-stream/CRB/x86_64/os/Packages/libvirt-devel-9.5.0-6.el9.x86_64.rpm",
-        "https://storage.googleapis.com/builddeps/caca5fbbfabe75cf56e24343bf93596f78a91fa341eacb668b15b505245922e9",
+        "https://people.redhat.com/abologna/shared-storage/libvirt-libs-9.10.0-1.el9.x86_64.rpm",
     ],
 )
 
@@ -3282,15 +3283,6 @@ rpm(
     urls = [
         "http://mirror.stream.centos.org/9-stream/AppStream/aarch64/os/Packages/libvirt-libs-9.5.0-6.el9.aarch64.rpm",
         "https://storage.googleapis.com/builddeps/340b6cdbfefd836dd0f37d6f77ce08f4cbd0c907cc7ea62b1ceddbac54cf76ce",
-    ],
-)
-
-rpm(
-    name = "libvirt-libs-0__9.5.0-6.el9.x86_64",
-    sha256 = "3c393f116df3ec9bc02a4dd2fe3d11b19a7188087693dce42f1582ad004a0f9d",
-    urls = [
-        "http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/libvirt-libs-9.5.0-6.el9.x86_64.rpm",
-        "https://storage.googleapis.com/builddeps/3c393f116df3ec9bc02a4dd2fe3d11b19a7188087693dce42f1582ad004a0f9d",
     ],
 )
 
