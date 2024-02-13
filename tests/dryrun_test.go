@@ -145,8 +145,10 @@ var _ = Describe("[sig-compute]Dry-Run requests", decorators.SigCompute, func() 
 		resource := "virtualmachines"
 
 		newVM := func() *v1.VirtualMachine {
-			vmiImage := cd.ContainerDiskFor(cd.ContainerDiskCirros)
-			vmi := tests.NewRandomVMIWithEphemeralDiskAndUserdata(vmiImage, "echo Hi\n")
+			vmi := libvmi.NewCirros(
+				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
+				libvmi.WithNetwork(v1.DefaultPodNetwork()),
+			)
 			vm := libvmi.NewVirtualMachine(vmi)
 			return vm
 		}
@@ -532,8 +534,10 @@ var _ = Describe("[sig-compute]Dry-Run requests", decorators.SigCompute, func() 
 		BeforeEach(func() {
 			tests.EnableFeatureGate(virtconfig.SnapshotGate)
 
-			vmiImage := cd.ContainerDiskFor(cd.ContainerDiskCirros)
-			vmi := tests.NewRandomVMIWithEphemeralDiskAndUserdata(vmiImage, "echo Hi\n")
+			vmi := libvmi.NewCirros(
+				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
+				libvmi.WithNetwork(v1.DefaultPodNetwork()),
+			)
 			vm := libvmi.NewVirtualMachine(vmi)
 			_, err := virtClient.VirtualMachine(vm.Namespace).Create(context.Background(), vm)
 			Expect(err).ToNot(HaveOccurred())
@@ -623,8 +627,10 @@ var _ = Describe("[sig-compute]Dry-Run requests", decorators.SigCompute, func() 
 		BeforeEach(func() {
 			tests.EnableFeatureGate(virtconfig.SnapshotGate)
 
-			vmiImage := cd.ContainerDiskFor(cd.ContainerDiskCirros)
-			vmi := tests.NewRandomVMIWithEphemeralDiskAndUserdata(vmiImage, "echo Hi\n")
+			vmi := libvmi.NewCirros(
+				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
+				libvmi.WithNetwork(v1.DefaultPodNetwork()),
+			)
 			vm := libvmi.NewVirtualMachine(vmi)
 			_, err := virtClient.VirtualMachine(vm.Namespace).Create(context.Background(), vm)
 			Expect(err).ToNot(HaveOccurred())
