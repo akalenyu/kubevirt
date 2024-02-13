@@ -57,6 +57,18 @@ func WithCloudInitNoCloudNetworkData(data string) Option {
 
 		volume := getVolume(vmi, cloudInitDiskName)
 		volume.CloudInitNoCloud.NetworkData = data
+		volume.CloudInitNoCloud.UserDataBase64 = ""
+	}
+}
+
+// WithCloudInitNoCloudEncodedNetworkData adds cloud-init no-cloud network data.
+func WithCloudInitNoCloudEncodedNetworkData(data string) Option {
+	return func(vmi *v1.VirtualMachineInstance) {
+		addDiskVolumeWithCloudInitNoCloud(vmi, cloudInitDiskName, v1.DiskBusVirtio)
+
+		volume := getVolume(vmi, cloudInitDiskName)
+		volume.CloudInitNoCloud.NetworkData = ""
+		volume.CloudInitNoCloud.NetworkDataBase64 = data
 	}
 }
 
