@@ -156,6 +156,32 @@ func isFeatureStateEnabled(fs *v1.FeatureState) bool {
 	return fs != nil && fs.Enabled != nil && *fs.Enabled
 }
 
+func setPersistentReservationAntiAffinity(vmi *v1.VirtualMachineInstance, pod *k8sv1.Pod) {
+	prLabels := reservation.PersistentReservationPVCLabels(vmi)
+	if len(prLabels) == 0 {
+		return
+	}
+
+	maps.Copy(pod.Labels, prLabels)
+
+	terms := reservation.PersistentReservationPodAntiAffinityTerms(prLabels)
+	if len(terms) == 0 {
+		return
+	}
+
+	if pod.Spec.Affinity == nil {
+		pod.Spec.Affinity = &k8sv1.Affinity{}
+	}
+	if pod.Spec.Affinity.PodAntiAffinity == nil {
+		pod.Spec.Affinity.PodAntiAffinity = &k8sv1.PodAntiAffinity{}
+	}
+
+	pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution = append(
+		pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution,
+		terms...,
+	)
+}
+
 func setNodeAffinityForPod(vmi *v1.VirtualMachineInstance, pod *k8sv1.Pod) {
 	setNodeAffinityForHostModelCpuModel(vmi, pod)
 	setNodeAffinityForbiddenFeaturePolicy(vmi, pod)
@@ -688,6 +714,7 @@ func (t *TemplateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, i
 	}
 
 	setNodeAffinityForPod(vmi, &pod)
+	setPersistentReservationAntiAffinity(vmi, &pod)
 
 	serviceAccountName := serviceAccount(vmi.Spec.Volumes...)
 	if len(serviceAccountName) > 0 {

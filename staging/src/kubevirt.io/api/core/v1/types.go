@@ -1324,6 +1324,11 @@ const (
 	// representation of the name to ensure uniqueness.
 	VirtualMachineInstanceIDLabel = "vmi.kubevirt.io/id"
 
+	// PersistentReservationLabelPrefix is the label key prefix used to mark
+	// virt-launcher pods that use SCSI PersistentReservation on a given PVC.
+	// The suffix is a truncated SHA256 hash of the PVC name.
+	PersistentReservationLabelPrefix = "pr.kubevirt.io/"
+
 	// PVCMemoryDumpAnnotation is the name of the memory dump representing the vm name,
 	// pvc name and the timestamp the memory dump was collected
 	PVCMemoryDumpAnnotation string = "kubevirt.io/memory-dump"
