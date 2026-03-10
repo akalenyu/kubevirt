@@ -3238,6 +3238,91 @@ var _ = Describe("KubeVirt Operator", func() {
 			})
 		})
 
+		Context("export proxy deployment", func() {
+			var kvTestData KubeVirtTestData
+
+			BeforeEach(func() {
+				kvTestData = KubeVirtTestData{}
+				kvTestData.BeforeTest()
+				DeferCleanup(kvTestData.AfterTest)
+			})
+
+			It("should remove virt-exportproxy deployment when export feature gate is disabled", func() {
+				const (
+					productName      = "kubevirt-test"
+					productVersion   = "0.0.0"
+					productComponent = "kubevirt-component"
+				)
+
+				kv := &v1.KubeVirt{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:       "test-install",
+						Namespace:  NAMESPACE,
+						Finalizers: []string{util.KubeVirtFinalizer},
+					},
+					Spec: v1.KubeVirtSpec{
+						ProductName:      productName,
+						ProductVersion:   productVersion,
+						ProductComponent: productComponent,
+					},
+					Status: v1.KubeVirtStatus{
+						Phase:           v1.KubeVirtPhaseDeployed,
+						OperatorVersion: version.Get().String(),
+					},
+				}
+				customConfig := util.GetTargetConfigFromKVWithEnvVarManager(&v1.KubeVirt{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: NAMESPACE,
+					},
+					Spec: v1.KubeVirtSpec{
+						ImageRegistry:    kvTestData.defaultConfig.GetImageRegistry(),
+						ImageTag:         "",
+						ProductName:      kv.Spec.ProductName,
+						ProductVersion:   kv.Spec.ProductVersion,
+						ProductComponent: kv.Spec.ProductComponent,
+						Configuration:    kv.Spec.Configuration,
+					},
+				},
+					kvTestData.mockEnvVarManager)
+
+				kubecontroller.SetLatestApiVersionAnnotation(kv)
+				kvTestData.addKubeVirt(kv)
+				kvTestData.addInstallStrategy(customConfig)
+
+				customConfig.Namespace = NAMESPACE
+				apiDeployment := components.NewApiServerDeployment(customConfig, "", "", "")
+				controllerDeployment := components.NewControllerDeployment(customConfig, "", "", "")
+				handlerDaemonset := components.NewHandlerDaemonSet(customConfig, "", "", "")
+				// Add exportproxy deployment to assert its removal when export feature gate is disabled
+				exportproxyDeployment := components.NewExportProxyDeployment(customConfig, "", "", "")
+				// omitempty ignores the field's zero value resulting in the json patch test op breaking
+				apiDeployment.ObjectMeta.Generation = 123
+				controllerDeployment.ObjectMeta.Generation = 123
+				handlerDaemonset.ObjectMeta.Generation = 123
+				exportproxyDeployment.ObjectMeta.Generation = 123
+
+				kvTestData.addDeployment(apiDeployment, kv)
+				kvTestData.addDeployment(controllerDeployment, kv)
+				kvTestData.addDaemonset(handlerDaemonset, kv)
+				kvTestData.addDeployment(exportproxyDeployment, kv)
+				kvTestData.addPodsAndPodDisruptionBudgets(customConfig, kv)
+				kvTestData.makeDeploymentsReady(kv)
+				kvTestData.makeHandlerReady()
+
+				kvTestData.shouldExpectDeletions()
+				kvTestData.shouldExpectPatchesAndUpdates(kv)
+				kvTestData.shouldExpectKubeVirtUpdateStatus(1)
+				kvTestData.shouldExpectCreations()
+
+				kvTestData.controller.Execute()
+
+				Expect(kvtesting.FilterActions(&kvTestData.kubeClient.Fake, "delete", "deployments")).To(HaveLen(1))
+				_, exists, err := kvTestData.controller.stores.DeploymentCache.GetByKey(fmt.Sprintf("%s/%s", NAMESPACE, "virt-exportproxy"))
+				Expect(err).ToNot(HaveOccurred())
+				Expect(exists).To(BeFalse())
+			})
+		})
+
 		DescribeTable("should update kubevirt resources when Operator version changes if no imageTag and imageRegistry is explicitly set.", func(withExport bool, patchCount, resourceCount, numPDBs int) {
 			kvTestData := KubeVirtTestData{}
 			kvTestData.BeforeTest()
