@@ -34,6 +34,7 @@ import (
 	v1 "kubevirt.io/api/core/v1"
 
 	"kubevirt.io/kubevirt/pkg/safepath"
+	"kubevirt.io/kubevirt/pkg/unsafepath"
 	"kubevirt.io/kubevirt/pkg/virt-handler/isolation"
 )
 
@@ -298,5 +299,126 @@ var _ = Describe("generateDeviceRulesForVMI", func() {
 		rules, err := generateDeviceRulesForVMI(&v1.VirtualMachineInstance{}, newMockIsolationWithMountRoot(), "", "kvm", true)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(rules).To(BeEmpty())
+	})
+
+	Context("with faked device rule creation", func() {
+		var (
+			origNewAllowedDeviceRule func(*safepath.Path, devices.Permissions) (*devices.Rule, error)
+			requestedPaths           []string
+		)
+
+		BeforeEach(func() {
+			origNewAllowedDeviceRule = newAllowedDeviceRule
+			newAllowedDeviceRule = func(devicePath *safepath.Path, perms devices.Permissions) (*devices.Rule, error) {
+				absPath := unsafepath.UnsafeAbsolute(devicePath.Raw())
+				requestedPaths = append(requestedPaths, absPath)
+				return &devices.Rule{
+					Type:        devices.CharDevice,
+					Major:       42,
+					Minor:       0,
+					Permissions: perms,
+					Allow:       true,
+				}, nil
+			}
+		})
+
+		AfterEach(func() {
+			newAllowedDeviceRule = origNewAllowedDeviceRule
+			requestedPaths = nil
+		})
+
+		It("should create a rule for the hypervisor device", func() {
+			Expect(os.WriteFile(filepath.Join(tempDir, "dev", "kvm"), nil, 0600)).To(Succeed())
+
+			rules, err := generateDeviceRulesForVMI(&v1.VirtualMachineInstance{}, newMockIsolationWithMountRoot(), "", "kvm", false)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(rules).To(HaveLen(1))
+			Expect(requestedPaths).To(ConsistOf(
+				filepath.Join(tempDir, "dev", "kvm"),
+			))
+		})
+
+		It("should discover VFIO device nodes", func() {
+			vfioDir := filepath.Join(tempDir, "dev", "vfio")
+			Expect(os.MkdirAll(vfioDir, 0755)).To(Succeed())
+			Expect(os.WriteFile(filepath.Join(vfioDir, "vfio"), nil, 0600)).To(Succeed())
+			Expect(os.WriteFile(filepath.Join(vfioDir, "42"), nil, 0600)).To(Succeed())
+
+			rules, err := generateDeviceRulesForVMI(&v1.VirtualMachineInstance{}, newMockIsolationWithMountRoot(), "", "kvm", true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(rules).To(HaveLen(2))
+			Expect(requestedPaths).To(ConsistOf(
+				filepath.Join(tempDir, "dev", "vfio", "42"),
+				filepath.Join(tempDir, "dev", "vfio", "vfio"),
+			))
+		})
+
+		It("should discover USB device nodes in nested directories", func() {
+			usbBusDir := filepath.Join(tempDir, "dev", "bus", "usb", "001")
+			Expect(os.MkdirAll(usbBusDir, 0755)).To(Succeed())
+			Expect(os.WriteFile(filepath.Join(usbBusDir, "001"), nil, 0600)).To(Succeed())
+			Expect(os.WriteFile(filepath.Join(usbBusDir, "002"), nil, 0600)).To(Succeed())
+
+			rules, err := generateDeviceRulesForVMI(&v1.VirtualMachineInstance{}, newMockIsolationWithMountRoot(), "", "kvm", true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(rules).To(HaveLen(2))
+			Expect(requestedPaths).To(ConsistOf(
+				filepath.Join(tempDir, "dev", "bus", "usb", "001", "001"),
+				filepath.Join(tempDir, "dev", "bus", "usb", "001", "002"),
+			))
+		})
+
+		It("should discover devices from both VFIO and USB", func() {
+			vfioDir := filepath.Join(tempDir, "dev", "vfio")
+			Expect(os.MkdirAll(vfioDir, 0755)).To(Succeed())
+			Expect(os.WriteFile(filepath.Join(vfioDir, "vfio"), nil, 0600)).To(Succeed())
+			Expect(os.WriteFile(filepath.Join(vfioDir, "0"), nil, 0600)).To(Succeed())
+
+			usbBus1Dir := filepath.Join(tempDir, "dev", "bus", "usb", "001")
+			usbBus2Dir := filepath.Join(tempDir, "dev", "bus", "usb", "002")
+			Expect(os.MkdirAll(usbBus1Dir, 0755)).To(Succeed())
+			Expect(os.MkdirAll(usbBus2Dir, 0755)).To(Succeed())
+			Expect(os.WriteFile(filepath.Join(usbBus1Dir, "001"), nil, 0600)).To(Succeed())
+			Expect(os.WriteFile(filepath.Join(usbBus2Dir, "001"), nil, 0600)).To(Succeed())
+
+			rules, err := generateDeviceRulesForVMI(&v1.VirtualMachineInstance{}, newMockIsolationWithMountRoot(), "", "kvm", true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(rules).To(HaveLen(4))
+			Expect(requestedPaths).To(ConsistOf(
+				filepath.Join(tempDir, "dev", "vfio", "vfio"),
+				filepath.Join(tempDir, "dev", "vfio", "0"),
+				filepath.Join(tempDir, "dev", "bus", "usb", "001", "001"),
+				filepath.Join(tempDir, "dev", "bus", "usb", "002", "001"),
+			))
+		})
+
+		It("should create a rule for urandom when RNG is enabled", func() {
+			Expect(os.WriteFile(filepath.Join(tempDir, "dev", "urandom"), nil, 0600)).To(Succeed())
+
+			vmi := &v1.VirtualMachineInstance{}
+			vmi.Spec.Domain.Devices.Rng = &v1.Rng{}
+
+			rules, err := generateDeviceRulesForVMI(vmi, newMockIsolationWithMountRoot(), "", "kvm", true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(rules).To(HaveLen(1))
+			Expect(requestedPaths).To(ConsistOf(
+				filepath.Join(tempDir, "dev", "urandom"),
+			))
+		})
+
+		It("should create a rule for vhost-vsock when AutoattachVSOCK is enabled", func() {
+			Expect(os.WriteFile(filepath.Join(tempDir, "dev", "vhost-vsock"), nil, 0600)).To(Succeed())
+
+			autoAttach := true
+			vmi := &v1.VirtualMachineInstance{}
+			vmi.Spec.Domain.Devices.AutoattachVSOCK = &autoAttach
+
+			rules, err := generateDeviceRulesForVMI(vmi, newMockIsolationWithMountRoot(), "", "kvm", true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(rules).To(HaveLen(1))
+			Expect(requestedPaths).To(ConsistOf(
+				filepath.Join(tempDir, "dev", "vhost-vsock"),
+			))
+		})
 	})
 })

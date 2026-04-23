@@ -286,7 +286,9 @@ func discoverDeviceRulesInDir(mountRoot *safepath.Path, relPath string) ([]*devi
 	return rules, nil
 }
 
-func newAllowedDeviceRule(devicePath *safepath.Path, devicePermissions devices.Permissions) (*devices.Rule, error) {
+var newAllowedDeviceRule = newAllowedDeviceRuleDefault
+
+func newAllowedDeviceRuleDefault(devicePath *safepath.Path, devicePermissions devices.Permissions) (*devices.Rule, error) {
 	fileInfo, err := safepath.StatAtNoFollow(devicePath)
 	if err != nil {
 		return nil, err
